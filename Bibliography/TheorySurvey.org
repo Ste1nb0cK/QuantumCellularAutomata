@@ -1,0 +1,12 @@
+#+title: Theory Survey
+#+author: Nicolás A. N. Salas
+
+* Eduardo Ortega (2004)
+** Chapman-Enskog Expansion
+** Quantum Cellular Automata
+** Gaussian Packet in a Potential Well
+* Ivan Pulido (2015)
+** Theoretical Basis
+** QLB Methods
+** Free Particle
+** Square Potential
