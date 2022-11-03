@@ -10,3 +10,179 @@
 ** QLB Methods
 ** Free Particle
 ** Square Potential
+
+* Silvia Palpacelli's Thesis (2009)
+** A Lattice Kinetic Approach to Quantum Mechanics
+The main idea is that it is possible to establish useful analogies between fluid and quantum
+mechanics that suggest the way for using LB ideas to simulate a quantum system.
+*** Probability conservation in non-relativistic QM
+The probability density of a single particle in QM is given by:
+$$\left | \psi(\vec{x}, t) \right|^2 = \psi(\vec{x}, t) \psi^*(\vec{x}, t) $$
+and one can easily show that the Schrödinger equation and its complex conjugate can be
+can be manipulated to obtain:
+$$ \partial_t \left | \psi(\vec{x}, t) \right|^2 = -\frac{\hbar i}{2m}\nabla \cdot \left[ \psi^*(\vec{x}, t) \nabla \psi(\vec{x}, t) - \psi^(\vec{x}, t) \nabla \psi^*(\vec{x}, t)  \right ]  $$
+Which is a continuity equation with
+$$
+\vec{J} = \frac{\hbar i}{2m}\left[ \psi^*(\vec{x}, t) \nabla \psi(\vec{x}, t) - \psi^(\vec{x}, t) \nabla \psi^*(\vec{x}, t)  \right ]
+$$
+$$ \rho = \left | \psi(\vec{x}, t) \right|^2 $$.
+This is where the fluid analogy begins, as we have established a way in which the probability
+density obeys a conservation law  /probability current/. This a consequence of unitary
+evolution in QM, as no probability should be lost. Using an eikonal approximation the analogy is strengthed as the imaginary part of the Schrödinger equation gives a continuity equation
+and the real part a non linear evolution equation. This is supposed to make a resemblance to
+the Navier-Stoke's equations.
+Palpacelli do notes that:
+/For all their intellectual charm, it is now commonly accepted that this similar-
+ities are only formal. However they can be extremely useful for modeling purposes
+to formulate non-relativistic quantum mechanics in terms of ﬁrst-order (relativis-
+tic) numerical schemes/
+*** Dirac's Equation
+**** The Majorana form for a Free Particle
+Consider now Dirac's Equation in its usual form:
+$$
+\partial_t  \pmb{\psi} + c \pmb{\alpha }\cdot \nabla \pmb{\psi} =
+-i \frac{mc^2}{\hbar}\beta \pmb{\psi}
+$$
+where
+$$\pmb{\psi}=\left(\psi_1,\psi_2,\psi_3,\psi_4 \right)^T$$ is a complex spinor
+and
+$$\pmb{\alpha} = (\alpha^x,\alpha^y,\alpha^z)$$
+$$\beta$$
+$4x4$ matrices. Notice that $\alpha^i$ is not exactly the usual $\gamma^i$ matrices but
+rather a multiple of them. The choice of Dirac's matrices is only unique up to unitary
+similarity transformations, so we can recast it in the so called /Majorana form/ via the
+transformation defined by
+$$S = \frac{1}{\sqrt{2}}(\alpha^y + \beta)$$
+this yields:
+$$
+\partial_t  \pmb{\psi} + c\left(-\alpha^x\partial_x + \beta\partial_y -
+\alpha^z\partial_z\right)\pmb{\psi} =
+-i \frac{mc^2}{\hbar}\alpha^y \pmb{\psi}=-i\omega_c\alpha^y\pmb{\psi}
+$$
+The key point we need from here is that the second operator acting on \pmb{\psi} is
+hermitian and purely real spinors can be found as solution.
+
+**** Addition of electromagnetic potentials
+The interaction with the electromagnetic potentials can be added via the transformation:
+$$i\hbar\partial_t -->i\hbar\partial_t +qV $$
+$$-i\hbar\nabla -->-i\hbar\nabla +\frac{q}{c}\pmb{A} $$
+after this Dirac's equation is turned into:
+$$
+\partial_t  \pmb{\psi} + c \pmb{\alpha }\cdot \nabla \pmb{\psi} =
+i  M\pmb{\psi}
+$$
+$$ M = -\omega_c + \frac{q}{\hbar}V - \frac{q}{\hbar}\left(\pmb{A}\cdot
+\pmb{\alpha})$$
+note that M is hermitian. It is called the /mass matrix/.
+**** Fluid Formulation of the Dirac Equation
+We can follow a path analogous to what we did for the Schrödinger equation by taking
+adjoints in the Dirac equation and summing with the original equation, this gives:
+$$\partial_t ( \pmb{\psi^\dag}\pmb{\psi}) + c \nabla \cdot  \left( \pmb{\psi^\dag \alpha
+\psi}\right)=0$$
+and this suggest defining:
+$$\rho = \pmb{\psi} \pmb{\psi^\dag}$$
+$$\vec{J} = c \pmb{\psi \alpha
+\psi^\dag}$$
+here $\rho$ is always not only real but possitive and can be interpreted as a position
+probability density, so we exted the analogy and interpret $c\pmb{\alpha}$ as a velocity.
+*** Navier-Stokes from LBE
+The hydrodynamic LBE is:
+$$f_i(\vec{x}+\vec{c_i}\Delta t, t + \Delta t) - f_i(\vec{x},t) =
+A_{ij}(f_j - f_j^{eq})
+$$
+where $f_i$ are the distribution functions (discrete) that are propagated in the $\vec{c_i}$ direction , $A_{ij}$ is called the /scattering matrix/ and is what dictates the interaction
+between distributions in different directions when they arrive at the same cell. $f^{eq}$ is
+the equilibrium distribution up to second term (to retain convective effects). Formally:
+$$
+f_i^{eq} = \frac{\rho}{b}\left( 1 + \frac{c_{il}u_l}{c_s^2} +
+\frac{Q_{ilm}u_lu_m}{2c_s^4})
+$$
+
+$$Q_{ilm}=c_{il}c_{im}-c_s^2\delta_{lm}$$
+
+$$\rho = \sum_{i=1}^{b}f_i$$
+
+$$u_l = \frac{1}{\rho} \sum_{i=1}^{b}f_ic_{il}$$
+
+$$c_s^2 = \frac{|\vec{c_i}|^2}{D}$$
+
+ $b$ the number of velocities connecting each cell to its neighbors and $D$  the dimensions
+ of the space. To ensure that the NS equations are recovered it is key to have mass and
+ mo mentum convervation, this is assured  respectively by demanding:
+$$
+ \sum_{i=1}^{b}A_{ij}=0;
+$$ for all $j$
+
+$$
+ \sum_{i=1}^{b}c_{il}A_{ij}=0;
+$$ for all $j,l$
+
+There is also a third condition for isotropy at macroscopic scale:
+
+$$T_{lmno} = \sum_{i=1}^{b}c_{il}c_{im}Q_{ino}$$
+must be isotropic. This conditions restrict a lot the possible lattices. After the
+Chapman-Enskog expansion is done (not even Palpacelli does it but she cites it) the
+Navier-Stokes equations are recovered in the continous limit. A key technical point is that
+one has /ghost fields/. Quoting Palpacelli:
+"
+Even
+though they do not add physical information, they cannot be erased from the
+dynamics in order to preserve essential symmetries [134].
+"
+*** Quantum  Lattice Boltzmann Equation
+Seeing how similar the ways in which the limit that recovers the NS equations from
+LBE is to the one which allows to recover the Schrödinger equation from Dirac's, one
+stablishes the following correspondence:
+
++ Ghost fields <--->  Antisymmetric modes
++ $f_i$ distribution functions of the LBE<--->  Components of $\pmb{\psi}$
++ Discrete velocities $\vec{c_i}$ <--> /Streaming matrices/ $\vec{L}=c(-\alpha^x, \beta
+  ,-\alpha^z)$
++ Scattering matrix $A$ <--> mass matrix $M$
+***** Lmitations to the identification
+Quoting :"
+1. the discrete distribution functions $f_i$ are $b$ real-valued variables, with $b$ being
+a sensitive function of dimensionality, whereas $\psi_j$ are always four complex-
+valued wave functions in any spatial dimension;
+2. the scattering matrix $A_{ij}$ is symmetric whereas $M_{ij}$ is skew-Hermitian;
+3. the LBE streaming operator is diagonal along all the spatial directions,
+while the Dirac streaming operator is not, because it is not possible to si-
+multaneously diagonalize the three matrices $L = c(−\alpha^x , \beta, −\alpha^ z )$.
+...
+Point (3) above represents the main problem of this proposed identiﬁcation, there
+is a structural mismatch between LBE and Dirac equation conceiving the stream-
+ing operator. While the streaming operator of LBE is always diagonal there is
+no way the three Dirac matrices can be simultaneously diagonalized. Both the
+dimensionality and structural mismatch are basically due to the quantum nature
+of the spin variable."
+
+One can limit it self to using $b=4$ but it is simply impossible to diagonalize all the
+matrices in Dirac's streaming operator simultaneously. The way to overcome this
+that Succi and Palpacelli propose is to work in multiple representations in which one of
+of them do is diagonalized, always taking care of not mixing them up in an incorrect
+way. This in practice is done by introducing rotations as an intermediate step in the
+LB algorithm of streaming and collision. Palpacelli is very explicit that this can not be
+generalized to more than one dimension:
+
+"
+As we shall clarify in Chapter 2, which is entirely devoted to the multi-dimensional
+extension of the model, this is not correct and leads to a scheme that does not
+solve the Schrödinger equation in the adiabatic limit.
+"
+The scheme is exemplified  next :
+
+Begin with a representation in which spin is aligned with the $z$-direction so the
+streaming matrix in this direction is diagonal.
+
+--------------------------------------------------------------------
+  ↓                                                                                                                         ↑
+Streaming along z ---> collision along z ---> transform to y-diagonal system       ↑
+                                                                              ↓                                            ↑
+                                                                              ↓                                             ↑
+  transform for x-diagonal system<--collision along y<--streaming along y          ↑
+  ↓                                                                                                                         ↑
+  ↓                                                                                                                         ↑
+Streaming along x ---> collision along x ---> transform to z-diagonal system ------
+
+ Palpacelli and Succi discuss this more in detail in their paper about QLB.
+***** One-Dimensional Quantum Lattice Boltzmann Model
