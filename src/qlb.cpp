@@ -15,14 +15,16 @@ const int Q = 2; // Number of directions
 const int N = Q*L; //Dimension of the vectors we will be using
 
 // typedef ('aliases')
+typedef Eigen::VectorXcd Vector;
+typedef Eigen::MatrixXcd Matrix;
 
 
 class QLB {
 private:
-  Eigen::VectorXcd Psi ; // Wave vectors are created as private attributes.
-  Eigen::VectorXcd Psi_new;
-  Eigen::MatrixXcd M;
-  Eigen::MatrixXcd C;
+  Vector Psi ; // Wave vectors are created as private attributes.
+  Vector Psi_new;
+  Matrix M;
+  Matrix C;
 
 public:
   QLB(void); //constructor. Initialize state as zero
@@ -70,7 +72,7 @@ QLB::QLB(void){
     }
   }
  // initialize the Advection
-  M = Eigen::MatrixXcd::Zero(N,N);
+  M = Matrix::Zero(N,N);
   for (int j = 0; j <  N; j++) {
     if (j % 2 == 0) {
       M((j + 2 +  N) % (N),j) = (1, 1);
