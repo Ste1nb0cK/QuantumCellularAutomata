@@ -9,7 +9,7 @@ typedef std::complex<double> complex;
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
 //----------------------Simulation Conditions-----------------------------------
-const int L = 4; // space size. For the SHO we should use only even L.
+const int L = 5; // space size. For the SHO we should use only odd L.
 const double theta = M_PI / 4;
 const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
@@ -24,9 +24,9 @@ const int N = Q*L; //Dimension of the vectors we will be using
 // is relevant to apply the Schrödinger Operator. As the center of our
 // simulation is L/2 we take that as reference i.e. the potential is
 // V(x) = (x-L/2)^2
-double Potential(int x);
+double Potential(double x);
 class QLB {
-private:
+  private:
   Vector Psi ; // Wave vectors are created as private attributes.
   Vector Psi_new;
   Matrix M; //TODO: Implement this using sparse and diagonal matrices.
@@ -89,10 +89,11 @@ QLB::QLB(void){
     }
   }
   V = Matrix::Zero(N,N);
-  for (i=0; i<N; i+=2){
+  for (i=0; i<L; i++){
     double V_x = Potential(i);
-    V(i,i) = (std::cos(V_x), -std::sin(V_x));
-    V(i+1,i+1) = (std::cos(V_x), -1*std::sin(V_x));
+    complex aux(std::cos(V_x), -std::sin(V_x));
+    V(2*i+1,2*i+1) = V(2*i,2*i) = aux;
+
   }
 
 }
@@ -149,6 +150,6 @@ int main() {
 }
 
 
-double Potential(int x){
-  return std::pow(x-L/2,2);
+double Potential(double x){
+  return std::pow(x-(L-1)/2 , 2);
 }
