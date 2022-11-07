@@ -3,28 +3,35 @@
 #include <iomanip>
 #include <iostream>
 #include <Eigen/Dense>
-
-//alias for complex numbers
+//Trying to implement the Harmonic Oscillator
+//---------------------Typdefs--------------------------------------------------
 typedef std::complex<double> complex;
-
-const int L = 300; // space size
-const double theta = M_PI / 4;
-complex p(std::cos(theta), 0); // Transition amplitudes
-complex q(0, std::sin(theta));
-const int Q = 2; // Number of directions
-const int N = Q*L; //Dimension of the vectors we will be using
-
-// typedef ('aliases')
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
-
-
+//----------------------Simulation Conditions-----------------------------------
+const int L = 4; // space size. For the SHO we should use only even L.
+const double theta = M_PI / 4;
+const complex p(std::cos(theta), 0); // Transition amplitudes
+const complex q(0, std::sin(theta));
+const int Q = 2; // Number of directions
+const int N = Q*L; //Dimension of the vectors we will be using
+//-----------------------System Conditions--------------------------------------
+//The system is asumed to be in natural units, for the SHO case:
+//For this case choice of natural units for the system makes the potential look:
+// V(x) = x^2
+// the mass, the frecuency of the oscillator  and \hbar\omega are equal to unity.
+// The lattice units are simply normalizations of this ones by N or tmax. This
+// is relevant to apply the Schrödinger Operator. As the center of our
+// simulation is L/2 we take that as reference i.e. the potential is
+// V(x) = (x-L/2)^2
+double Potential(int x);
 class QLB {
 private:
   Vector Psi ; // Wave vectors are created as private attributes.
   Vector Psi_new;
-  Matrix M;
+  Matrix M; //TODO: Implement this using sparse and diagonal matrices.
   Matrix C;
+  Matrix V;
 
 public:
   QLB(void); //constructor. Initialize state as zero
@@ -36,12 +43,13 @@ public:
   void Advection(void); // Creates the Advection operator and modifies Psi.
   void Print_Rho(void); // Prints the real part fo the wave function, later, the
                         // function will pirnt the probability density.
-  // void PrintM(void); //for testing
+  void PrintM(void); //for testing
+  void Evolution(void); //Apply a complete evolution step
 };
 
-// void QLB::PrintM(void){
-//   std::cout << M << std::endl;
-// }
+void QLB::PrintM(void){
+  std::cout << V << std::endl;
+}
 QLB::QLB(void){
   int i,j;
   //Declare the size of the matrices, otherwise this wont work.
@@ -49,10 +57,10 @@ QLB::QLB(void){
   Psi_new.resize(N);
   M.resize(N,N);
   C.resize(N,N);
-  for (i=0; i<N; i++){
-    Psi(i) = (0,0);
-    Psi_new(i) = (0,0);
-  }
+  V.resize(N,N);
+  //Set vectors to zero
+  Psi = Vector::Zero(N);
+  Psi_new = Vector::Zero(N);
   // initialize the Collision Catrix
   for (j = 0; j<N ; j++){
     //divide into odd and even case
@@ -73,15 +81,23 @@ QLB::QLB(void){
   }
  // initialize the Advection
   M = Matrix::Zero(N,N);
-  for (int j = 0; j <  N; j++) {
+  for (j = 0; j <  N; j++) {
     if (j % 2 == 0) {
       M((j + 2 +  N) % (N),j) = (1, 1);
     } else if (j % 2 == 1) {
       M((j + 2 * L - 2 + N) % (N),j) = (1, 1);
     }
-}
+  }
+  V = Matrix::Zero(N,N);
+  for (i=0; i<N; i+=2){
+    double V_x = Potential(i);
+    V(i,i) = (std::cos(V_x), -std::sin(V_x));
+    V(i+1,i+1) = (std::cos(V_x), -1*std::sin(V_x));
+  }
+
 }
 void QLB::Start(void) {
+  //TODO: Pass the initial conditions more generically
   // A right traveling plane wave is created as  initial condition.
   complex z;
   double k = (2 * M_PI / L);
@@ -116,18 +132,23 @@ void QLB::Print_Rho(void) {
   for (int ix = 0; ix < N; ix += 2)
     std::cout << ix / 2 << " " << std::real(Rho(ix)) << std::endl;
 }
-
 int main() {
   std::cout << std::fixed
             << std::setprecision(
                    3); // This is to choose the precision of complex numbers.
   QLB free_particle;
-  free_particle.Start();
-  for (int t = 0; t < 200; t++) {
-    free_particle.Collision();
-    free_particle.Advection();
-  }
+  // free_particle.Start();
+  // for (int t = 0; t < 200; t++) {
+  //   free_particle.Collision();
+  //   free_particle.Advection();
+  // }
 
-  free_particle.Print_Rho();
+  // free_particle.Print_Rho();
+  free_particle.PrintM();
   return 0;
+}
+
+
+double Potential(int x){
+  return std::pow(x-L/2,2);
 }
