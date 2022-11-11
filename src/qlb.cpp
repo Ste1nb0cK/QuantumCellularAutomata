@@ -9,7 +9,7 @@ typedef std::complex<double> complex;
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
 //----------------------Simulation Conditions-----------------------------------
-const int L = 5; // space size. For the SHO we should use only odd L.
+const int L = 301; // space size. For Symmetric V we should use only odd L.
 const double theta = M_PI / 4;
 const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
@@ -129,6 +129,9 @@ void QLB::Advection(void) {
   Psi = M * Psi_new;
 }
 
+void QLB::Evolution(void){
+  Psi = V*M*C*Psi;
+} //Apply a complete evolution step
 void QLB::Print_Rho(void) {
   for (int ix = 0; ix < N; ix += 2)
     std::cout << ix / 2 << " " << std::real(Rho(ix)) << std::endl;
@@ -137,15 +140,13 @@ int main() {
   std::cout << std::fixed
             << std::setprecision(
                    3); // This is to choose the precision of complex numbers.
-  QLB free_particle;
-  // free_particle.Start();
-  // for (int t = 0; t < 200; t++) {
-  //   free_particle.Collision();
-  //   free_particle.Advection();
-  // }
+  QLB particle;
+  particle.Start();
+  for (int t = 0; t < 200; t++) {
+    particle.Evolution();
+  }
 
-  // free_particle.Print_Rho();
-  free_particle.PrintM();
+  particle.Print_Rho();
   return 0;
 }
 
