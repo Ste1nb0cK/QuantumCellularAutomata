@@ -55,14 +55,14 @@ Matrix QLB::Get_Evolution(void){
   Matrix U_x;
   U_x = Matrix::Zero(L,L);
   for(int ix =0; ix<L; ix++){
-    for(int iy =0; ix<L; iy++){
+ 
     double V_x = Potential(ix);
     complex aux(std::cos(V_x), -std::sin(V_x));
     U_x(ix,ix) = aux*(p+q);   
    
 
     }
-  }
+  
   
   
  
