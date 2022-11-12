@@ -9,7 +9,7 @@ typedef std::complex<double> complex;
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
 //----------------------Simulation Conditions-----------------------------------
-const int L = 301; // space size. For Symmetric V we should use only odd L.
+const int L = 100; // space size. For Symmetric V we should use only odd L.
 const double theta = M_PI / 4;
 const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
@@ -32,6 +32,7 @@ class QLB {
   Matrix M; //TODO: Implement this using sparse and diagonal matrices.
   Matrix C;
   Matrix V;
+ 
 
 public:
   QLB(void); //constructor. Initialize state as zero
@@ -45,10 +46,33 @@ public:
                         // function will pirnt the probability density.
   void PrintM(void); //for testing
   void Evolution(void); //Apply a complete evolution step
+  Matrix Get_Evolution(void);
 };
 
+Matrix QLB::Get_Evolution(void){
+
+  
+  Matrix U_x;
+  U_x = Matrix::Zero(L,L);
+  for(int ix =0; ix<L; ix++){
+    for(int iy =0; ix<L; iy++){
+    double V_x = Potential(ix);
+    complex aux(std::cos(V_x), -std::sin(V_x));
+    U_x(ix,ix) = aux*(p+q);   
+   
+
+    }
+  }
+  
+  
+ 
+  return U_x;
+}
+
+
+
 void QLB::PrintM(void){
-  std::cout << V << std::endl;
+  std::cout << V*M*C << std::endl;
 }
 QLB::QLB(void){
   int i,j;
@@ -100,12 +124,13 @@ QLB::QLB(void){
 void QLB::Start(void) {
   //TODO: Pass the initial conditions more generically
   // A right traveling plane wave is created as  initial condition.
-  complex z;
   double k = (2 * M_PI / L);
-  for (int ix = 0; ix < N; ix++) {
+  double mu = L/2;
+  double sigma2 = L*L/(100);
+  for (int ix = 0; ix < Q * L; ix++) {
     if (ix % 2 == 1) {
-      z = (std::cos(k * ix), -1 * std::sin(k * ix));
-      Psi(ix) = z;
+      complex z(std::cos(k * ix), -1 * std::sin(k * ix));
+      Psi(ix) = z*std::exp(-std::pow(ix-mu, 2)/(2*sigma2));
     }
   }
 }
@@ -134,23 +159,40 @@ void QLB::Evolution(void){
 } //Apply a complete evolution step
 void QLB::Print_Rho(void) {
   for (int ix = 0; ix < N; ix += 2)
-    std::cout << ix / 2 << " " << std::real(Rho(ix)) << std::endl;
+    std::cout << ix / 2 << " " << std::norm(Rho(ix)) << std::endl;
 }
 int main() {
   std::cout << std::fixed
             << std::setprecision(
-                   3); // This is to choose the precision of complex numbers.
+				 3); // This is to choose the precision of complex numbers.
   QLB particle;
-  particle.Start();
-  for (int t = 0; t < 200; t++) {
+
+   particle.Start();
+  for (int t = 0; t < 20; t++) {
     particle.Evolution();
   }
 
   particle.Print_Rho();
+
+  /* Matrix U = particle.Get_Evolution();
+  Eigen::ComplexEigenSolver<Matrix> Solver(U, false);
+  Solver.compute(U);
+  std::cout<<U;*/
+  
+
+
   return 0;
-}
+
+  }
+  
 
 
 double Potential(double x){
-  return std::pow(x-(L-1)/2 , 2);
+  
+  if(x<40){return 0;}
+
+  else {return 50;}
 }
+
+
+
