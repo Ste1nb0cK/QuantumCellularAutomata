@@ -9,7 +9,7 @@ typedef std::complex<double> complex;
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
 //----------------------Simulation Conditions-----------------------------------
-const int L = 100; // space size. For Symmetric V we should use only odd L.
+const int L = 50; // space size. For Symmetric V we should use only odd L.
 const double theta = M_PI / 4;
 const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
@@ -52,28 +52,37 @@ public:
 Matrix QLB::Get_Evolution(void){
 
   
-  Matrix U_x;
-  U_x = Matrix::Zero(L,L);
-  for(int ix =0; ix<L; ix++){
- 
-    double V_x = Potential(ix);
-    complex aux(std::cos(V_x), -std::sin(V_x));
-    U_x(ix,ix) = aux*(p+q);   
-   
-
-    }
-  
+ Matrix U2 = V*M*C;
+  Matrix U;
+  U.resize(L,L);
+  for(int i =0; i<L; i++){
+    for(int j =0; j<L; j++){
+     U(i,j) = U2(2*i,2*j) +  U2(2*i+1,2*j) +  U2(2*i,2*j+1) +  U2(2*i+1,2*j+1);
+   }
+}
   
   
  
-  return U_x;
+  return U;
 }
 
 
 
 void QLB::PrintM(void){
-  std::cout << V*M*C << std::endl;
+
+  Matrix U2 = V*M*C;
+  Matrix U;
+  U.resize(L,L);
+  for(int i =0; i<L; i++){
+    for(int j =0; j<L; j++){
+     U(i,j) = U2(2*i,2*j) +  U2(2*i+1,2*j) +  U2(2*i,2*j+1) +  U2(2*i+1,2*j+1);
+   }
 }
+
+  std::cout<<U;
+}
+
+
 QLB::QLB(void){
   int i,j;
   //Declare the size of the matrices, otherwise this wont work.
@@ -112,10 +121,12 @@ QLB::QLB(void){
       M((j + 2 * L - 2 + N) % (N),j) = (1, 1);
     }
   }
+
+  double epsilon = 1;
   V = Matrix::Zero(N,N);
   for (i=0; i<L; i++){
     double V_x = Potential(i);
-    complex aux(std::cos(V_x), -std::sin(V_x));
+    complex aux(std::cos(epsilon*V_x), -std::sin(epsilon*V_x));
     V(2*i+1,2*i+1) = V(2*i,2*i) = aux;
 
   }
@@ -164,21 +175,29 @@ void QLB::Print_Rho(void) {
 int main() {
   std::cout << std::fixed
             << std::setprecision(
-				 3); // This is to choose the precision of complex numbers.
+				 4); // This is to choose the precision of complex numbers.
   QLB particle;
 
-   particle.Start();
-  for (int t = 0; t < 20; t++) {
-    particle.Evolution();
-  }
+  particle.Start();
 
-  particle.Print_Rho();
-
-  /* Matrix U = particle.Get_Evolution();
+  Matrix U = particle.Get_Evolution();
   Eigen::ComplexEigenSolver<Matrix> Solver(U, false);
   Solver.compute(U);
-  std::cout<<U;*/
-  
+
+  //std::cout<<Solver.eigenvectors().col((L/2)+1);
+  Vector Psi = Solver.eigenvectors().col((L/2)+1);
+
+
+
+   for (int i =0; i<L; i++){
+    std::cout<<i<<" "<<std::norm(Psi(i))<<std::endl;
+   
+    }
+
+
+  // particle.PrintM();
+ 
+ 
 
 
   return 0;
@@ -187,12 +206,20 @@ int main() {
   
 
 
+
+
+
+
+
 double Potential(double x){
   
-  if(x<40){return 0;}
+  if(15<x<30){return 0;}
 
   else {return 50;}
-}
 
+  // return std::pow(x-(L/2), 2);
+
+  
+}
 
 
