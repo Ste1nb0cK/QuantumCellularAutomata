@@ -3,13 +3,14 @@
 #include <iomanip>
 #include <iostream>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
 //Trying to implement the Harmonic Oscillator
 //---------------------Typdefs--------------------------------------------------
 typedef std::complex<double> complex;
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
 //----------------------Simulation Conditions-----------------------------------
-const int L = 50; // space size. For Symmetric V we should use only odd L.
+const int L = 3; // space size. For Symmetric V we should use only odd L.
 const double theta = M_PI / 4;
 const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
@@ -32,7 +33,7 @@ class QLB {
   Matrix M; //TODO: Implement this using sparse and diagonal matrices.
   Matrix C;
   Matrix V;
- 
+  Matrix C2;
 
 public:
   QLB(void); //constructor. Initialize state as zero
@@ -51,35 +52,21 @@ public:
 
 Matrix QLB::Get_Evolution(void){
 
-  
- Matrix U2 = V*M*C;
-  Matrix U;
-  U.resize(L,L);
-  for(int i =0; i<L; i++){
-    for(int j =0; j<L; j++){
-     U(i,j) = U2(2*i,2*j) +  U2(2*i+1,2*j) +  U2(2*i,2*j+1) +  U2(2*i+1,2*j+1);
-   }
-}
-  
+
+
+
   
  
-  return U;
+  return (V*(M*C2)*(M*C)).pow(1000);
 }
 
 
 
 void QLB::PrintM(void){
 
-  Matrix U2 = V*M*C;
-  Matrix U;
-  U.resize(L,L);
-  for(int i =0; i<L; i++){
-    for(int j =0; j<L; j++){
-     U(i,j) = U2(2*i,2*j) +  U2(2*i+1,2*j) +  U2(2*i,2*j+1) +  U2(2*i+1,2*j+1);
-   }
-}
 
-  std::cout<<U;
+
+  std::cout<<V;
 }
 
 
@@ -131,6 +118,13 @@ QLB::QLB(void){
 
   }
 
+  C2.resize(N,N);
+    for(int j =0; j<N; j++){
+    for(int i =0; i<N; i++){
+      C2(j,i)=C((i-1+N)%N, j);
+
+    }
+    }
 }
 void QLB::Start(void) {
   //TODO: Pass the initial conditions more generically
@@ -175,7 +169,7 @@ void QLB::Print_Rho(void) {
 int main() {
   std::cout << std::fixed
             << std::setprecision(
-				 4); // This is to choose the precision of complex numbers.
+				 6); // This is to choose the precision of complex numbers.
   QLB particle;
 
   particle.Start();
@@ -184,18 +178,36 @@ int main() {
   Eigen::ComplexEigenSolver<Matrix> Solver(U, false);
   Solver.compute(U);
 
-  //std::cout<<Solver.eigenvectors().col((L/2)+1);
-  Vector Psi = Solver.eigenvectors().col((L/2)+1);
+  std::cout<<Solver.eigenvectors();
+  Vector Psi2 = Solver.eigenvectors().col(0
+					  );
+  //std::cout<<Solver.eigenvalues()[0]*Psi2 - U*Psi2<<std::endl;
+ 
 
 
 
-   for (int i =0; i<L; i++){
+  Vector Psi;
+  Psi.resize(L);
+  
+
+
+  
+
+   for(int i = 0; i<L; i++){
+    Psi(i) = Psi2(2*i)+Psi2(2*i+1);
+
+  }
+ 
+
+
+   /*for (int i =0; i<L; i++){
     std::cout<<i<<" "<<std::norm(Psi(i))<<std::endl;
    
-    }
+    }*/
+   
 
 
-  // particle.PrintM();
+     // particle.PrintM();
  
  
 
@@ -212,12 +224,9 @@ int main() {
 
 
 double Potential(double x){
+  return 0.5*std::pow((x-(L/2)), 2);
+
   
-  if(15<x<30){return 0;}
-
-  else {return 50;}
-
-  // return std::pow(x-(L/2), 2);
 
   
 }
