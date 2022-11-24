@@ -82,15 +82,28 @@ QLB::QLB(void){
 }
 }
 void QLB::Start(void) {
-  // A right traveling plane wave is created as  initial condition.
-  complex z;
-  double k = (2 * M_PI / L);
-  for (int ix = 0; ix < N; ix++) {
+  // complex z;
+  //----------------------------Right Traveling Planewave---------------------//
+  // double k = (2 * M_PI / L);
+  // for (int ix = 0; ix < N; ix++) {
+  //   if (ix % 2 == 1) {
+  //     z = (std::cos(k * ix), -1 * std::sin(k * ix));
+  //     Psi(ix) = z;
+  //   }
+  // }
+  //----------------------------Gaussian--------------------------------------//
+  for (int ix=0; ix<N; ix++){
     if (ix % 2 == 1) {
-      z = (std::cos(k * ix), -1 * std::sin(k * ix));
+      double n=10;
+      double k =(2*n*M_PI)/N;
+      double sigma0 = 15;
+      double argument = -std::pow( (ix/2 - L/2.0)/sigma0, 2);
+      double gaussian;
+      gaussian = N* 1/(std::pow(2*sigma0*sigma0*M_PI,0.25))*std::exp(argument);
+      complex z (std::cos(k*ix)*gaussian, std::sin(k*ix)*gaussian);
       Psi(ix) = z;
     }
-  }
+    }
 }
 
 void QLB::Get_Psi(void) {
@@ -114,7 +127,9 @@ void QLB::Advection(void) {
 
 void QLB::Print_Rho(void) {
   for (int ix = 0; ix < N; ix += 2)
-    std::cout << ix / 2 << " " << std::real(Rho(ix)) << std::endl;
+    std::cout << ix/2 << " " << std::norm(Rho(ix)) << std::endl;
+    //Add two blank lines for animating in gnuplot
+    std::cout << "\n"<< "\n";
 }
 
 int main() {
@@ -123,11 +138,11 @@ int main() {
                    3); // This is to choose the precision of complex numbers.
   QLB free_particle;
   free_particle.Start();
-  for (int t = 0; t < 200; t++) {
+  for (int t = 0; t < 500; t++) {
+    free_particle.Print_Rho();
     free_particle.Collision();
     free_particle.Advection();
   }
 
-  free_particle.Print_Rho();
   return 0;
 }
