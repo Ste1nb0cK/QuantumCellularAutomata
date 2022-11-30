@@ -16,6 +16,7 @@ const complex p(std::cos(theta), 0); // Transition amplitudes
 const complex q(0, std::sin(theta));
 const int Q = 2; // Number of directions
 const int N = Q*L; //Dimension of the vectors we will be using
+
 //-----------------------System Conditions--------------------------------------
 //The system is asumed to be in natural units, for the SHO case:
 //For this case choice of natural units for the system makes the potential look:
@@ -26,15 +27,15 @@ const int N = Q*L; //Dimension of the vectors we will be using
 // simulation is L/2 we take that as reference i.e. the potential is
 // V(x) = (x-L/2)^2
 double Potential(double x);
+
 class QLB {
   private:
   Vector Psi ; // Wave vectors are created as private attributes.
   Vector Psi_new;
-  Matrix M; //TODO: Implement this using sparse and diagonal matrices.
-  Matrix C;
-  Matrix V;
+  Matrix M;   //advection
+  Matrix C;   //colition
+  Matrix V;   //e^{iV(x)} evolución del potencial
   Matrix C2;
-
 public:
   QLB(void); //constructor. Initialize state as zero
   void Start(void);     // This imposes the initial conditions.
@@ -51,24 +52,12 @@ public:
 };
 
 Matrix QLB::Get_Evolution(void){
-
-
-
-
-  
- 
   return (V*(M*C2)*(M*C)).pow(1000);
 }
 
-
-
 void QLB::PrintM(void){
-
-
-
   std::cout<<V;
 }
-
 
 QLB::QLB(void){
   int i,j;
@@ -79,23 +68,23 @@ QLB::QLB(void){
   C.resize(N,N);
   V.resize(N,N);
   //Set vectors to zero
-  Psi = Vector::Zero(N);
-  Psi_new = Vector::Zero(N);
-  // initialize the Collision Catrix
+  Psi = Vector::Zero(N);     //celdas pares a la izquierda
+  Psi_new = Vector::Zero(N); //celdad impares a la derecha
+  // initialize the Collision Matrix
   for (j = 0; j<N ; j++){
     //divide into odd and even case
     if(j%2 ==0){
       for(i=0; i<N; i++){
         if(i==j){ C(i,j)=p;}
-        else if(i-j == 1){C(i,j)=q;}
-        else {C(i,j)=0;}
+        else if(i == j + 1){C(i,j)=q;}
+        else {C(i,j)=0.0;}
       }
     }
-    if(j%2!=0){
+    if(j%2 != 0){
       for(i=0; i<N; i++){
         if(i==j){ C(i,j)=p;}
-        else if(j-i == 1){C(i,j)=q;}
-        else {C(i,j)=0;}
+        else if(i == j - 1){C(i,j)=q;}
+        else {C(i,j)=0.0;}b
       }
     }
   }
@@ -120,10 +109,9 @@ QLB::QLB(void){
 
   C2.resize(N,N);
     for(int j =0; j<N; j++){
-    for(int i =0; i<N; i++){
-      C2(j,i)=C((i-1+N)%N, j);
-
-    }
+      for(int i =0; i<N; i++){
+	C2(j,i)=C((i-1+N)%N, j);
+      }
     }
 }
 void QLB::Start(void) {
@@ -167,9 +155,8 @@ void QLB::Print_Rho(void) {
     std::cout << ix / 2 << " " << std::norm(Rho(ix)) << std::endl;
 }
 int main() {
-  std::cout << std::fixed
-            << std::setprecision(
-				 6); // This is to choose the precision of complex numbers.
+  std::cout << std::fixed<< std::setprecision(6);
+  // This is to choose the precision of complex numbers.
   QLB particle;
 
   particle.Start();
@@ -179,56 +166,27 @@ int main() {
   Solver.compute(U);
 
   std::cout<<Solver.eigenvectors();
-  Vector Psi2 = Solver.eigenvectors().col(0
-					  );
+  Vector Psi2 = Solver.eigenvectors().col(0);
   //std::cout<<Solver.eigenvalues()[0]*Psi2 - U*Psi2<<std::endl;
  
-
-
-
   Vector Psi;
   Psi.resize(L);
-  
 
-
-  
-
-   for(int i = 0; i<L; i++){
+  for(int i = 0; i<L; i++){
     Psi(i) = Psi2(2*i)+Psi2(2*i+1);
 
   }
- 
-
-
    /*for (int i =0; i<L; i++){
     std::cout<<i<<" "<<std::norm(Psi(i))<<std::endl;
    
     }*/
-   
-
-
-     // particle.PrintM();
- 
- 
-
-
-  return 0;
-
-  }
   
-
-
-
-
-
-
-
+  // particle.PrintM();
+  return 0;
+}
+  
 double Potential(double x){
   return 0.5*std::pow((x-(L/2)), 2);
-
-  
-
-  
 }
 
 
