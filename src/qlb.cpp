@@ -7,8 +7,8 @@
 //alias for complex numbers
 typedef std::complex<double> complex;
 
-const int L = 300; // space size
-const double theta = M_PI / 4;
+const int L = 500; // space size
+const double theta = M_PI / 8;
 complex p(std::cos(theta), 0); // Transition amplitudes
 complex q(0, std::sin(theta));
 const int Q = 2; // Number of directions
@@ -17,41 +17,39 @@ const int N = Q*L; //Dimension of the vectors we will be using
 // typedef ('aliases')
 typedef Eigen::VectorXcd Vector;
 typedef Eigen::MatrixXcd Matrix;
+double Potential(double x);
 
 
 class QLB {
 private:
   Vector Psi ; // Wave vectors are created as private attributes.
-  Vector Psi_new;
+  Vector Phi;
   Matrix M;
   Matrix C;
+  Matrix V;
+  Matrix C2;
+  
 
 public:
   QLB(void); //constructor. Initialize state as zero
   void Start(void);     // This imposes the initial conditions.
   void Get_Psi(void);   // Returns the Wave vector. Just for test.
-  void Get_Psi_new();   // Returns the Wave vector. Just for test.
   complex Rho(int ix);  // Returns the probability density at each cell.
-  void Collision(void); // Creates the Collsion operator and modifies Psi_new.
-  void Advection(void); // Creates the Advection operator and modifies Psi.
-  void Print_Rho(void); // Prints the real part fo the wave function, later, the
-                        // function will pirnt the probability density.
-  // void PrintM(void); //for testing
+  void Print_Rho(void); // Prints the real part fo the wave function, la                       
+  void Evolution(void);
+  void DFT(void);
+  void Print_Rho_Moment(void);
 };
 
-// void QLB::PrintM(void){
-//   std::cout << M << std::endl;
-// }
 QLB::QLB(void){
   int i,j;
   //Declare the size of the matrices, otherwise this wont work.
   Psi.resize(N);
-  Psi_new.resize(N);
   M.resize(N,N);
   C.resize(N,N);
+  Phi.resize(L);
   for (i=0; i<N; i++){
     Psi(i) = (0,0);
-    Psi_new(i) = (0,0);
   }
   // initialize the Collision Catrix
   for (j = 0; j<N ; j++){
@@ -80,30 +78,47 @@ QLB::QLB(void){
       M((j + 2 * L - 2 + N) % (N),j) = (1, 1);
     }
 }
+
+
+ double epsilon = 1;
+  V = Matrix::Zero(N,N);
+  for (i=0; i<L; i++){
+    double V_x = Potential(i);
+    complex aux(std::cos(epsilon*V_x), -std::sin(epsilon*V_x));
+    V(2*i+1,2*i+1) = V(2*i,2*i) = aux;
+
+  }
+
+
+   C2.resize(N,N);
+    for(int j =0; j<N; j++){
+    for(int i =0; i<N; i++){
+      C2(j,i)=C((i-1+N)%N, j);
+
+    }
+    }
 }
 void QLB::Start(void) {
-  // complex z;
+   complex z;
   //----------------------------Right Traveling Planewave---------------------//
-  // double k = (2 * M_PI / L);
-  // for (int ix = 0; ix < N; ix++) {
-  //   if (ix % 2 == 1) {
-  //     z = (std::cos(k * ix), -1 * std::sin(k * ix));
-  //     Psi(ix) = z;
-  //   }
-  // }
+   double k = (2 * M_PI / L);
+   for (int ix = 0; ix < N; ix++) {
+
+       z = (std::cos(k * ix), -1 * std::sin(k * ix));
+       Psi(ix) = z;
+     }
+   
   //----------------------------Gaussian--------------------------------------//
-  for (int ix=0; ix<N; ix++){
+
+  /* double k = (10*M_PI / L);
+  double mu = 100;
+  double sigma2 = L*L/(1000);
+  for (int ix = 0; ix < Q * L; ix++) {
     if (ix % 2 == 1) {
-      double n=10;
-      double k =(2*n*M_PI)/N;
-      double sigma0 = 15;
-      double argument = -std::pow( (ix/2 - L/2.0)/sigma0, 2);
-      double gaussian;
-      gaussian = N* 1/(std::pow(2*sigma0*sigma0*M_PI,0.25))*std::exp(argument);
-      complex z (std::cos(k*ix)*gaussian, std::sin(k*ix)*gaussian);
-      Psi(ix) = z;
+      complex z(std::cos(k * ix), -1 * std::sin(k * ix));
+      Psi(ix) = z*std::exp(-std::pow(ix-mu, 2)/(2*sigma2));
     }
-    }
+    }*/
 }
 
 void QLB::Get_Psi(void) {
@@ -111,19 +126,9 @@ void QLB::Get_Psi(void) {
     std::cout << Psi(ix,0) << std::endl;
 }
 
-void QLB::Get_Psi_new(void) {
-  for (int ix = 0; ix < N; ix++)
-    std::cout << Psi_new(ix,0) << std::endl;
-}
+
 complex QLB::Rho(int ix) { return Psi(ix,0) + Psi(ix + 1,0); }
 
-void QLB::Collision(void) {
-  Psi_new = C * Psi;
-}
-
-void QLB::Advection(void) {
-  Psi = M * Psi_new;
-}
 
 void QLB::Print_Rho(void) {
   for (int ix = 0; ix < N; ix += 2)
@@ -132,17 +137,65 @@ void QLB::Print_Rho(void) {
     std::cout << "\n"<< "\n";
 }
 
+void QLB::Evolution(void){
+
+  Psi =(V*M*C)*Psi;
+
+}
+
+
+void QLB::DFT(void){
+
+  Vector AUX;
+  AUX.resize(L);
+  for(int ix = 0; ix<L; ix++){
+
+    AUX(ix) = Psi(2*ix) + Psi(2*ix +1);
+  }
+  
+ for(int k=0; k<L; k++){
+   complex sum;
+   sum = 0;
+   for(int n=0; n<L; n++){
+     complex phase(cos((2*M_PI/L)*k*n), -sin((2*M_PI/L)*k*n)); 
+     sum += AUX(n)*phase; 
+
+   }
+   Phi[k]=sum;
+  }
+}
+
+void QLB::Print_Rho_Moment(void){
+ for (int ix = 0; ix < L; ix ++)
+   std::cout << ix << " " << std::norm(Phi(ix)) << std::endl;
+    //Add two blank lines for animating in gnuplot
+    //std::cout << "\n"<< "\n";
+
+}
+
 int main() {
   std::cout << std::fixed
             << std::setprecision(
-                   3); // This is to choose the precision of complex numbers.
+                   16); // This is to choose the precision of complex numbers.
   QLB free_particle;
   free_particle.Start();
-  for (int t = 0; t < 500; t++) {
+  free_particle.DFT();
+  free_particle.Print_Rho_Moment();
+  
+
+
+  /* for (int t = 0; t < 10; t+=1) {
     free_particle.Print_Rho();
-    free_particle.Collision();
-    free_particle.Advection();
-  }
+    free_particle.Evolution();
+    }*/
 
   return 0;
+}
+
+double Potential(double x){
+
+
+  if (x<250) return 0;
+  else{return 7;}
+
 }
