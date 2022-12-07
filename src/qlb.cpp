@@ -7,8 +7,8 @@
 //alias for complex numbers
 typedef std::complex<double> complex;
 
-const int L = 500; // space size
-const double theta = M_PI / 8;
+const int L = 100; // space size
+const double theta = M_PI / 4;
 complex p(std::cos(theta), 0); // Transition amplitudes
 complex q(0, std::sin(theta));
 const int Q = 2; // Number of directions
@@ -39,6 +39,9 @@ public:
   void Evolution(void);
   void DFT(void);
   void Print_Rho_Moment(void);
+  double Variance(Vector V);
+  double Uncertainty();
+  
 };
 
 QLB::QLB(void){
@@ -99,26 +102,32 @@ QLB::QLB(void){
     }
 }
 void QLB::Start(void) {
-   complex z;
+ 
   //----------------------------Right Traveling Planewave---------------------//
+    complex z;
    double k = (2 * M_PI / L);
    for (int ix = 0; ix < N; ix++) {
-
+     if(ix%2==1){
        z = (std::cos(k * ix), -1 * std::sin(k * ix));
-       Psi(ix) = z;
-     }
+       Psi(ix) = z;}
+       }
    
   //----------------------------Gaussian--------------------------------------//
-
-  /* double k = (10*M_PI / L);
-  double mu = 100;
-  double sigma2 = L*L/(1000);
+  // double k = (2 * M_PI / L);
+  /* double k = 0;
+  double mu = L/2;
+  double sigma2 = L*L/(100);
   for (int ix = 0; ix < Q * L; ix++) {
     if (ix % 2 == 1) {
       complex z(std::cos(k * ix), -1 * std::sin(k * ix));
       Psi(ix) = z*std::exp(-std::pow(ix-mu, 2)/(2*sigma2));
     }
     }*/
+  //---------------------------Hermit's Polynomials____________________
+
+
+  
+
 }
 
 void QLB::Get_Psi(void) {
@@ -146,6 +155,7 @@ void QLB::Evolution(void){
 
 void QLB::DFT(void){
 
+  complex lenght(1/L,0);
   Vector AUX;
   AUX.resize(L);
   for(int ix = 0; ix<L; ix++){
@@ -165,11 +175,54 @@ void QLB::DFT(void){
   }
 }
 
+double QLB::Variance(Vector V){
+
+  //Calcular N
+  double N = 0;
+  for(int ix = 0; ix<L; ix++){
+
+    N+= std::norm(V(ix));
+
+  }
+  double prom = 0;
+   //Calcular prom
+    for(int ix = 0; ix<L; ix++){
+
+   prom += std::norm(V(ix))*ix;
+
+  }
+    
+  prom/=N;
+
+  //Calcular Sigma2
+  double Sigma2 = 0;
+  for(int ix = 0; ix<L; ix++)
+   Sigma2+=pow(ix-prom,2.0)*std::norm(V(ix));
+
+
+ Sigma2/=N;
+ return Sigma2;
+}
+
+double QLB::Uncertainty(void){
+
+  Vector AUX;
+  AUX.resize(L);
+  for(int ix = 0; ix<L; ix++){
+
+    AUX(ix) = Psi(2*ix) + Psi(2*ix +1);
+  }
+  
+  // return std::sqrt(Variance(AUX))*std::sqrt(Variance(Phi));
+   return std::sqrt(Variance(Phi));
+  
+
+}
 void QLB::Print_Rho_Moment(void){
  for (int ix = 0; ix < L; ix ++)
    std::cout << ix << " " << std::norm(Phi(ix)) << std::endl;
     //Add two blank lines for animating in gnuplot
-    //std::cout << "\n"<< "\n";
+    std::cout << "\n"<< "\n";
 
 }
 
@@ -179,15 +232,18 @@ int main() {
                    16); // This is to choose the precision of complex numbers.
   QLB free_particle;
   free_particle.Start();
-  free_particle.DFT();
-  free_particle.Print_Rho_Moment();
   
 
 
-  /* for (int t = 0; t < 10; t+=1) {
-    free_particle.Print_Rho();
+   for (int t = 0; t < 300; t+=1) {
+  
     free_particle.Evolution();
-    }*/
+    free_particle.DFT();
+    free_particle.Print_Rho_Moment();
+    // free_particle.Print_Rho();
+    // std::cout<<t<<" "<<free_particle.Uncertainty()<<std::endl;
+    // free_particle.Get_Psi();
+    }
 
   return 0;
 }
@@ -195,7 +251,17 @@ int main() {
 double Potential(double x){
 
 
-  if (x<250) return 0;
-  else{return 7;}
+  /* if (x<250) return 0;
+     else{return 7;}*/
+
+  /* if (x == 0 or x == L) {return 1e10;}
+     else {return 0;}*/
+
+  return 0;
+
+  //return 0.5*std::pow(x-(L/2), 2);
+
+  
+  
 
 }
