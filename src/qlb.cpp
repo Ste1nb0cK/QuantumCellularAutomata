@@ -173,7 +173,7 @@ int main() {
   QLB particle;
 
   particle.Start();
-
+  particle.Print_Rho();
   Matrix U = particle.Get_Evolution();
   Eigen::ComplexEigenSolver<Matrix> Solver(U, false);
   Solver.compute(U);
@@ -182,53 +182,26 @@ int main() {
   Vector Psi2 = Solver.eigenvectors().col(0
 					  );
   //std::cout<<Solver.eigenvalues()[0]*Psi2 - U*Psi2<<std::endl;
- 
-
-
 
   Vector Psi;
   Psi.resize(L);
-  
-
-
-  
 
    for(int i = 0; i<L; i++){
     Psi(i) = Psi2(2*i)+Psi2(2*i+1);
-
   }
  
-
-
    /*for (int i =0; i<L; i++){
-    std::cout<<i<<" "<<std::norm(Psi(i))<<std::endl;
-   
+    std::cout<<i<<" "<<std::norm(Psi(i))<<std::endl;   
     }*/
-   
-
-
      // particle.PrintM();
- 
- 
-
 
   return 0;
 
   }
-  
-
-
-
-
-
-
 
 double Potential(double x){
   return 0.5*std::pow((x-(L/2)), 2);
 
-  
-
-  
 }
 
 
