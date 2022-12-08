@@ -7,7 +7,7 @@
 //alias for complex numbers
 typedef std::complex<double> complex;
 
-const int L = 100; // space size
+const int L = 500; // space size
 const double theta = M_PI / 4;
 complex p(std::cos(theta), 0); // Transition amplitudes
 complex q(0, std::sin(theta));
@@ -104,26 +104,30 @@ QLB::QLB(void){
 void QLB::Start(void) {
  
   //----------------------------Right Traveling Planewave---------------------//
-    complex z;
-   double k = (2 * M_PI / L);
+   
+  /*  double k = (2 * M_PI / L);
    for (int ix = 0; ix < N; ix++) {
      if(ix%2==1){
-       z = (std::cos(k * ix), -1 * std::sin(k * ix));
+      complex z(std::cos(k * ix), -1 * std::sin(k * ix));
        Psi(ix) = z;}
-       }
+     
+
+     else{ Psi(ix)=0;}
+     } */
    
   //----------------------------Gaussian--------------------------------------//
-  // double k = (2 * M_PI / L);
-  /* double k = 0;
+
+  double k = ( 3*2*M_PI / L);
+  // double k = 0;
   double mu = L/2;
-  double sigma2 = L*L/(100);
+  double sigma2 = (L*L)/(100);
   for (int ix = 0; ix < Q * L; ix++) {
     if (ix % 2 == 1) {
       complex z(std::cos(k * ix), -1 * std::sin(k * ix));
       Psi(ix) = z*std::exp(-std::pow(ix-mu, 2)/(2*sigma2));
     }
-    }*/
-  //---------------------------Hermit's Polynomials____________________
+    }
+
 
 
   
@@ -201,7 +205,7 @@ double QLB::Variance(Vector V){
 
 
  Sigma2/=N;
- return Sigma2;
+ return prom;
 }
 
 double QLB::Uncertainty(void){
@@ -214,13 +218,13 @@ double QLB::Uncertainty(void){
   }
   
   // return std::sqrt(Variance(AUX))*std::sqrt(Variance(Phi));
-   return std::sqrt(Variance(Phi));
+  return Variance(AUX);
   
 
 }
 void QLB::Print_Rho_Moment(void){
  for (int ix = 0; ix < L; ix ++)
-   std::cout << ix << " " << std::norm(Phi(ix)) << std::endl;
+   std::cout << ix << " " << std::norm(Phi((ix -30 + L)%L)) << std::endl;
     //Add two blank lines for animating in gnuplot
     std::cout << "\n"<< "\n";
 
@@ -232,17 +236,17 @@ int main() {
                    16); // This is to choose the precision of complex numbers.
   QLB free_particle;
   free_particle.Start();
-  
+  //free_particle.Get_Psi();
 
 
-   for (int t = 0; t < 300; t+=1) {
+   for (int t = 0; t < 100; t+=1) {
   
     free_particle.Evolution();
-    free_particle.DFT();
-    free_particle.Print_Rho_Moment();
+    // free_particle.DFT();
+    //free_particle.Print_Rho_Moment();
     // free_particle.Print_Rho();
-    // std::cout<<t<<" "<<free_particle.Uncertainty()<<std::endl;
-    // free_particle.Get_Psi();
+    std::cout<<t<<" "<<free_particle.Uncertainty()<<std::endl;
+    //free_particle.Get_Psi();
     }
 
   return 0;
@@ -251,17 +255,17 @@ int main() {
 double Potential(double x){
 
 
-  /* if (x<250) return 0;
-     else{return 7;}*/
+  /* if (x<L/2) return 0;
+     else{return 10;}*/
 
   /* if (x == 0 or x == L) {return 1e10;}
      else {return 0;}*/
 
+
+
+  // return 30*0.5*std::pow(x-(L/4), 2);
+
   return 0;
-
-  //return 0.5*std::pow(x-(L/2), 2);
-
-  
   
 
 }
